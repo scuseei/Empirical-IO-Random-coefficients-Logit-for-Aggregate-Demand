@@ -10,7 +10,8 @@ Feb 25, 2018 |Chenshuo Sun |Stern Business School, NYU |csun@stern.nyu.edu
 
 Goal(s)
 -------
-Simulate data sets
+Simulate datasets, which consist of (1) market share and (2) product 
+characteristics and prices, for each product j, and market t.
 """
 
 import numpy as np

@@ -10,13 +10,12 @@ Feb 25, 2018 |Chenshuo Sun |Stern Business School, NYU |csun@stern.nyu.edu
 
 Goal(s)
 -------
-Simulate datasets, which consist of (1) market share and (2) product 
-characteristics and prices, for each product j, and market t.
+Simulate datasets, which consist of market share, product characteristics and
+prices, for each product j, and market t.
 """
 
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
 import itertools
 import line_profiler
 profiler = line_profiler.LineProfiler()
@@ -69,6 +68,7 @@ class DataSimulator(object):
         params = self.params
         z_jt = self.z_jt
         data = self.characteristics()
+        #
         data['e_jt'] = pd.Series(
             0,
             index=data.index.values,
@@ -134,7 +134,7 @@ class DataSimulator(object):
                 beta_mean * data.iloc[r]['p_jt'] + data.iloc[r]['e_jt']  # d_jt
         n = 1000
         v_i = np.random.normal(0, 1, n)
-        phi_v_i = norm.pdf(v_i)
+        # Phi_v_i = norm.cdf(v_i)
         for (jt, r) in zip(JT, range(len(data))):
             p_jt = data.iloc[r]['p_jt']
             u_ijt = v_i * beta_std * p_jt
@@ -165,10 +165,10 @@ class DataSimulator(object):
         # calculate s_jt
         for (jt, r) in zip(JT, range(len(data_))):
             fun = data_.iloc[r]['nom_ijt'] / data_.iloc[r]['denom_it']
-            tmp = np.sum(fun * phi_v_i) / n  # problematic
+            tmp = np.sum(fun) / n  # might be problematic
             data_.set_value(jt, 's_jt', tmp)
         data = data_.reset_index()
-        data = data[['J', 'T', 's_jt', 'x_jt', 'p_jt']]
+        data = data[['J', 'T', 's_jt', 'x_jt', 'z_jt', 'p_jt']]
         # return
         return data
 
@@ -178,10 +178,11 @@ class DataSimulator(object):
         """
         M = self.M
         for m in range(M):
-            file_name = 'Data_' + str(m + 1) + ''
+            file_name = 'Data_' + str(m + 1) 
             data = self.prices_and_share()
             data.to_pickle(file_name)
-
+            file_name = file_name + '.csv'
+            data.to_csv(file_name)
 
 @profiler
 def main():
@@ -190,12 +191,12 @@ def main():
     # set params
     J = 10
     T = 50
-    a0 = 2.0
+    a0 = 3.0
     a1 = 1.5
-    beta_mean = -3.0
+    beta_mean = -1.0
     beta_sig = 0.5
-    w0 = 1.0
-    w1 = 0.5
+    w0 = 5.0
+    w1 = 2.0
     e_sig = 1.0
     en_sig = 0.5
     n_sig = 2.0

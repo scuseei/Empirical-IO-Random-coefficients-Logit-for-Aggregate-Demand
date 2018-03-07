@@ -51,9 +51,9 @@ class GMM(object):
         D = self.D
         J = self.J
         T = self.T
+        
         sum_s = pd.Series(0, index=data.index.values)
         p_jt = data['p_jt']
-        
         for d in range(D):
             v = v_i[d]
             mu_ijt = theta2 * v * p_jt
@@ -95,18 +95,20 @@ class GMM(object):
         """Function for computing GMM obj function
         """
         # get from class
-        theta2 = params
         data = self.__data_loader()
-        data = data.set_index(['J', 'T'])
         delta_ini = self.delta_ini
         e = self.e
+        D = self.D
+        
+        theta2 = params
+        data = data.set_index(['J', 'T'])
         # variables
         one_jt = pd.Series(1, index=data.index.values)
         X_jt = pd.concat([one_jt, data['x_jt'], data['p_jt']], axis=1)
         Z_jt = pd.concat([one_jt, data['z_jt']], axis=1)
         delta_ini = pd.DataFrame(delta_ini, index=data.index.values)
         s_o_jt = data['s_jt']
-        v_i = np.random.normal(0, 1, self.D)
+        v_i = np.random.normal(0, 1, D)
         # initial value before loop
         delta_l_1 = pd.DataFrame(delta_ini)
         delta_l = self.__update_delta(
@@ -117,7 +119,7 @@ class GMM(object):
             '------------\n' +
             'inner loop for getting theta1 and GMM for theta2')
         while (np.max(np.abs(delta_l - delta_l_1)) > e).bool():
-            print(np.max(np.abs(delta_l - delta_l_1)))
+            # print(np.max(np.abs(delta_l - delta_l_1)))
             # update delta
             delta_l_1 = pd.DataFrame(delta_l)
             delta_l = self.__update_delta(
@@ -132,10 +134,13 @@ class GMM(object):
         e_hat_jt = delta_l - np.dot(X_jt, theta_hat_1)
         # return obj
         g_theta2 = np.dot(e_hat_jt.T, Z_jt)
-        Wn = np.dot(Z_jt.T, Z_jt)
+        Wn = np.linalg.inv(np.dot(np.dot(Z_jt.T, e_hat_jt),
+                                  np.dot(e_hat_jt.T, Z_jt)))
         obj_value = np.dot(np.dot(g_theta2, Wn), g_theta2.T)
+        print('GMM obj value is:')
+        print(obj_value)
         return obj_value
-    
+
 
 @profiler
 def main():
@@ -146,29 +151,32 @@ def main():
     D = 10
     J = 10
     T = 50
-    e = 1e-1
+    e = 1e-2
     delta_ini = np.zeros(J * T)
     theta2_ini = 1.0
 
     # get estimation results
     est = GMM(m, D, J, T, e, delta_ini, theta2_ini)
-    
+
     # outer loop
     from scipy.optimize import minimize
     params = theta2_ini
+    cons = ({'type': 'ineq', 'fun': lambda param:  param})
     theta2 = minimize(
         est.inner_loop,
         params,
-        method='L-BFGS-B',
+        method='Nelder-Mead',
+        constraints=cons,
         options={
-                'gtol': 0.01,
-                'disp': True})
+            'gtol': 0.01,
+            'disp': True})
     obj_value, theta1 = est.inner_loop(theta2)
-    
+
     # print result
     print('-------------\nResults are: ')
     print('\ntheta1: ' + str(theta1))
     print('\ntheta2: ' + str(theta2))
+
 
 if __name__ == "__main__":
     main()

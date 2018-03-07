@@ -1,0 +1,33 @@
+J = 10
+T = 50
+
+===========
+True Values
+===========
+a0 = 3.0
+a1 = 1.5
+beta_mean = -1.0
+beta_sig = 0.5
+
+===========
+Initial
+===========
+beta_sig = 1.0
+
+===================
+Est. Values (M = 3)
+===================
+a0 = 3.20
+a1 = 1.39
+beta_mean = -1.07
+beta_sig = 0.55
+
+a0 = 2.94
+a1 = 1.52
+beta_mean = -1.11
+beta_sig = 0.57
+
+a0 = 3.08
+a1 = 1.56
+beta_mean = -0.88
+beta_sig = 0.44

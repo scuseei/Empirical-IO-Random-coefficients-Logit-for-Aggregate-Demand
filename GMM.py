@@ -151,7 +151,7 @@ def main():
     D = 10
     J = 10
     T = 50
-    e = 1e-2
+    e = 1e-12
     delta_ini = np.zeros(J * T)
     theta2_ini = 1.0
 
